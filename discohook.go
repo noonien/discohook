@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -98,6 +99,28 @@ func (c *Color) UnmarshalJSON(data []byte) error {
 	c.B = byte(number & 0xFF)
 
 	return nil
+}
+
+func URL(id, token string) string {
+	return fmt.Sprintf("https://discordapp.com/api/webhooks/%s/%s", id, token)
+}
+
+func Check(url string) (bool, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return false, err
+	}
+
+	req.Header.Add("User-Agent", "discohook/1.0")
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	resp.Body.Close()
+
+	return resp.StatusCode == 200, nil
 }
 
 func Send(url string, msg *Message, wait bool) error {
